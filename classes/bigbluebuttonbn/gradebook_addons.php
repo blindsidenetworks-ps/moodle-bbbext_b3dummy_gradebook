@@ -16,6 +16,7 @@
 
 namespace bbbext_b3dummy_gradebook\bigbluebuttonbn;
 
+use stdClass;
 use mod_bigbluebuttonbn\instance;
 
 /**
@@ -33,18 +34,30 @@ class gradebook_addons extends \mod_bigbluebuttonbn\local\extension\gradebook_ad
     /**
      * Constructor
      *
-     * @param instance|null $instance BigBlueButton instance if any
-     * @param string|null $data data to be processed
+     * @param stdClass|null $modinstance BigBlueButton instance if any
      */
-    public function __construct(?instance $instance = null, ?string $data = null) {
-        parent::__construct($instance, $data);
+    public function __construct(?stdClass $modinstance = null) {
+        parent::__construct($modinstance);
     }
 
     /**
      * Update the grade item for a given activity
      */
     public function grade_item_update($grades=NULL){
-        error_log('[bbbext_b3dummy_gradebook] grade_item_update' . $this->modinstance, DEBUG_DEVELOPER);
+        $bigbluebuttonbn = $this->modinstance;
+
+        // Since the grade item is not updated by any extension, we update it here.
+        $params = array('itemname' => $bigbluebuttonbn->name);
+        if ($bigbluebuttonbn->grade > 0) {
+            $params['gradetype'] = GRADE_TYPE_VALUE;
+            $params['grademax']  = $bigbluebuttonbn->grade;
+            $params['grademin']  = 0;
+
+        } else {
+            $params['gradetype'] = GRADE_TYPE_NONE;
+        }
+
+        return grade_update('mod/bigbluebuttonbn', $bigbluebuttonbn->course, 'mod', 'bigbluebuttonbn', $bigbluebuttonbn->id, 0, $grades, $params);
     }
 
     /**
